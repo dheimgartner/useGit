@@ -147,30 +147,142 @@ The general workflow (for today) looks something like this
 | git commit -m "blob" |-----+
 +----------------------+
 \end{bashcode}
+Let's go through this step by step
 
 \leftmarginpar{\git{git init}}
-Foo
+``Create an empty \proglang{git} repository or reinitialize an existing one''
+\begin{bashcode}
+# don't worry about this...
+mkdir foo
+cd foo
+printf "#= script.R\nf <- function() {\n  NULL\n}\n" > script.R
 
-\leftmarginpar{\git{git add}}
-Foo
-
-\leftmarginpar{\git{git commit}}
-Foo
+# this is the important line
+git init .
+\end{bashcode}
 
 \leftmarginpar{\git{git status}}
-Foo
+``Show the working tree status''
+\begin{bashcode}
+git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        script.R
+
+nothing added to commit but untracked files present (use "git add" to track)
+\end{bashcode}
+
+\leftmarginpar{\git{git add}}
+``Add file contents to the index''
+\begin{bashcode}
+git add .      # add all changes
+git add foo.R  # add changes in foo.R
+\end{bashcode}
+%
+Again, insightful to check the status
+\begin{bashcode}
+git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   script.R
+\end{bashcode}
+\marginpar{As always, it's a good idea to read the output of a command -- it is there to help you!}
+
+\leftmarginpar{\git{git commit}}
+``Record changes to the repository'' \git{git add} is like adding a file to the file cabinet, but the door has not yet been closed (you can still replace it) and the list recording the changes is not yet written...
+\begin{bashcode}
+git commit -m "init"  # the usual first commit message
+\end{bashcode}
+%
+Now, it's officially a \proglang{git} repository -- yay!!
+\marginpar{What makes a repository a \proglang{git} repository? Hint: \bash{ls -a .}}
+
+...Now, you work on script.R...
 
 \leftmarginpar{\git{git diff}}
-Foo
+``Show changes between commits, commit and working tree, etc.''
+\begin{bashcode}
+git diff .  # or script.R
+diff --git a/script.R b/script.R
+index 1165da1..a008e94 100644
+--- a/script.R
++++ b/script.R
+@@ -1,4 +1,4 @@
+ #= script.R
+ f <- function() {
+-  NULL
++  "foo"
+ }
+\end{bashcode}
+
+...Add and commit again...
+
+\leftmarginpar{\git{git log}}
+``Show commit logs''
+\begin{bashcode}
+git log
+commit e62788c24e2d9fdc5b79b111256935ad8a87d97c (HEAD -> master)
+Author: daniehei <daniel.heimgartner@ivt.baug.ethz.ch>
+Date:   Tue May 20 15:36:39 2025 +0200
+
+    foo
+
+commit 60a73d8900f91290397f595afec5b7e88cf8d18a
+Author: daniehei <daniel.heimgartner@ivt.baug.ethz.ch>
+Date:   Tue May 20 15:34:18 2025 +0200
+
+    init
+\end{bashcode}
+
 
 \leftmarginpar{\git{git checkout}}
-Foo
+``Switch branches or restore working tree files''
+\begin{bashcode}
+git checkout HEAD~1  # go one commit back
+cat script.R
+#= script.R
+f <- function() {
+  NULL
+}
+\end{bashcode}
+%
+Where has our valuable work gone???
 
 \leftmarginpar{\git{git branch}}
-Foo
+``List, create, or delete branches''
+\marginpar{As we will learn next session, \proglang{GitHub} allows you essentially to host (remote) branches, such that multiple participants can inspect and share work. And then they wrap of course other useful functionality around it...}
+When you really want to mess with your work, I would recommend to generate a new branch first (as it is easier to checkout, restore branches instead of going back in the commit history)...
+\begin{bashcode}
+git branch dev    # you can call it whatever you like
+git checkout dev  # don't forget to checkout!
+\end{bashcode}
+%
+Now, we are on a new branch -- completely leaving the \code{master} branch unaffected!
+\marginpar{Exercise: Try to rename the branch. Hint: \bash{man git-branch} and then type \use{/rename} and hit \use{Enter}.}
+
+There are two possibilities going forward: 1. We like the changes we made on our \code{dev} branch, or, 2. We don't like them at all, we hate them, and want get rid of them! Let's start with 2. to confuse you!
+
+\begin{bashcode}
+git checkout master # switch to main again
+git branch -d dev   # and delete the branch
+\end{bashcode}
 
 \leftmarginpar{\git{git merge}}
-Foo
+``Join two or more development histories together''
+Let's say we like the changes made on \code{dev} branch... Oups, sorry, you just deleted the branch -- the changes are actually gone forever! Let's say we did not execute the code above.
+\begin{bashcode}
+git checkout master
+git diff main dev  # diff works also with branches
+git merge dev      # this integrates/merges the changes
+\end{bashcode}
 
 \section{Special files and folders}
 
@@ -178,13 +290,20 @@ Foo
 This is where the magic happens!
 
 \leftmarginpar{\code{.gitignore}}
-Foo
+\marginpar{Careful: Once you've committed a file containing sensitive information, this information is part of the history and can be recovered, even if you remove the information from the file again. There are ways to remove sensitive information completely from the history, but it is still a good to be sensitized (?)}
+Put all files or folders there which should not be tracked by \proglang{git} (e.g., passwords)...
 
 \section{Helpful tools}
 
 \leftmarginpar{\proglang{gitk}}
-\proglang{gitk} is a graphical repository browser. It can be thought of as a GUI wrapper for \git{git log} and is useful for exploring and visualizing the history of a repository.
-
+\proglang{gitk} is a graphical repository browser. It can be thought of as a GUI wrapper for \git{git diff} or \git{git log} and is useful for exploring and visualizing the history of a repository. Try it!
+%
+...Make changes to script.R...
+\begin{bashcode}
+gitk
+\end{bashcode}
+%
+\marginpar{Almost every IDE (e.g., RStudio or VScode have built-in support to visualize such changes. Of course, use them if you prefer!)}
 
 \leftmarginpar{Resources}
 \begin{itemize}
