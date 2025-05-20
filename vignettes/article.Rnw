@@ -1,7 +1,11 @@
 \documentclass[a4paper]{article}
 \usepackage{minimal}
 
-\usepackage[dvipsnames]{xcolor}
+%\VignetteIndexEntry{Let's use version control (git)!}
+%\VignetteDepends{foo}
+%\VignettePackage{useGit}
+
+\usepackage[svgnames]{xcolor}
 \usepackage[nochapters,eulermath=true]{classicthesis}
 \usepackage{natbib}
 
@@ -9,57 +13,184 @@
 \usepackage{orcidlink,thumbpdf}
 \usepackage{framed}
 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{pmboxdraw}
+\usepackage{float}
+
 \bibliographystyle{minimal}
 
 \setlength{\marginparwidth}{4cm}
+\setlength{\marginparsep}{0.4cm}
+\setlength{\marginparpush}{0.75cm}
 \hypersetup{citecolor=teal}
+
+\usepackage{minted}
+\newminted{bash}{bgcolor=Beige, bgcolorpadding=0.5em}
+\newcommand{\bash}[1]{\mintinline{bash}|#1|}
+
+\newminted[gitcode]{bash}{bgcolor=Beige, bgcolorpadding=0.5em}
+\newcommand{\git}[1]{\mintinline{bash}|#1|}
+
+\newcommand{\use}[1]{\code{#1}}
 
 \SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
 <<preliminaries, echo=FALSE, results=hide>>=
-options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
-library("MASS")
+options(prompt = " ",  continue = "   ", width = 70, useFancyQuotes = FALSE)
+library("useGit")
 @
 
 \author{Daniel Heimgartner}
 
-\title{A Short Demo Article}
+\title{Let's use version control (git)!}
 
 \begin{document}
 \maketitle
 
-\section{To cite or not to cite} \label{sec:cite}
+\marginpar{Highly recommended: Read the first three chapters of \url{https://git-scm.com/book/en/v2}}
 
-A nice book: \citet{Cameron+Trivedi:2013}
+Code to be executed in a terminal running bash looks like this
+\begin{gitcode}
+git init .  # what's the connection between git and bash? dot?
+\end{gitcode}
 
-\section{\R~code} \label{sec:code}
-\leftmarginpar{Wow this is some real code!}
-<<>>=
+\section{Why?}
+
+\leftmarginpar{What is \proglang{git}}
+\begin{itemize}
+\item \proglang{git} is a (there are many!) \emph{version control system} that helps you track and manage changes to source code (files) over time.
+\item Think of a (time-ordered) linked chain of cabinets where you store your current state of your work. And in each cabinet you also put a list, describing the work you did since the previous archiving in the previous cabinet. Thinking about this metaphor, what benefits could you think of?
+\end{itemize}
+
+\leftmarginpar{What are the benefits?}
+\begin{itemize}
+\item Don't be afraid to experiment/mess with a document (better than \use{Ctrl+Z})
+\item Keep track of how a document changed (e.g., submitted vs. re-submitted paper/script)
+\item If your in the habit of \code{foo\_v01.R}, \code{foo\_v02.R}, ..., \code{foo\_v99.R}, \proglang{git} is for you!
+\item Own mental freedom. But also key benefits when collaborating (next week).
+\end{itemize}
+
+\leftmarginpar{What will I learn?}
+\begin{itemize}
+\item Today we will focus on how \emph{you} for yourself can use \proglang{git}. Collaboration (i.e., when multiple people work on the same ``git repository'') is the topic of the next meeting.
+\item The goal for today: 1. Understand the \proglang{git} cycle, 2. Start tracking a project with \proglang{git}, 3. Inspect changes you've made, 4. Accept or restore changes, 5. Commit changes, 6. Inspect (checkout) a previous version, 7. Experiment on a new branch, 8. Accept (merge) the changes of the new branch.
+\item Learn where to learn more!
+\end{itemize}
+
+\section{Settling a potential confusion}
+
+\proglang{git} is an executable program (not constrained to \proglang{bash}). It's a command-line-interface (CLI) tool -- an API following the \bash{command -options args} syntax (and not a programming language or something like that). I.e., we have to learn (!) the API/commands...
+
+% path => executable program (from last session) => command -options args => i.e., it's an API (not a programming language or something like that) => R CLI script
+\marginpar{You could clone (next session) the source \url{https://github.com/git/git} (adjust it) and build the executable program yourself!}
+\begin{bashcode}
+which git
+/usr/bin/git
+\end{bashcode}
+
+\section{Getting help}
+
+Do you remember from last week? Where can you get help?
+\begin{bashcode}
+git help
+git help <verb>    # git help init
+git <verb> --help  # git init --help
+# this is what we've discussed, using man...
+man git-<verb>     # man git-init
+\end{bashcode}
+
+\section{Let's get started}
+
+Let's imagine we have a project currently consisting of one file only (so unfortunately, it's not an \R-package...).
+
+\begin{bashcode}
+cd foo
+tree .
+.
+└── script.R
+
+0 directories, 1 file
+
+cat script.R
+#= script.R
 f <- function() {
-  cat("Hello, world!\n")
+  NULL
 }
-f()
-@
+\end{bashcode}
 
-\section{Talking \code{code}}
-\leftmarginpar{\code{usethis::create\_package()}}
-\code{x <- 1}
+\marginpar{We use version control for a project/directory (and then add or exclude individual files)...}
+And we want to start tracking changes in that project, i.e., we want to use \proglang{git} version control in that repository!
 
-\section{Mathematik, Mathematik --- immer diese Mathematik} \label{sec:maths}
+\leftmarginpar{The \proglang{git} cycle}
+The general workflow (for today) looks something like this
 
-\begin{equation}
-a^2 + b^2 = c^2
-\end{equation}
+\marginpar{``blob'' is not really a meaningful commit message. Try to be precise about what you did. Try to make meaningful chunks you commit (i.e., \git{git add} files and changes that belong together)}
+\begin{bashcode}
+  +-------------------------+
+  |    git init .           |
+  |    git add .            |
+  |    git commit -m "init" |
+  +-------------------------+
+             |
+             v
+   +------------------+
+   |  Work on foo.R   | <----+
+   +------------------+      |
+             |               |
+             v               |
+     +---------------+       |
+     | git add foo.R |       |
+     +---------------+       |
+             |               |
+             v               |
++----------------------+     |
+| git commit -m "blob" |-----+
++----------------------+
+\end{bashcode}
+
+\leftmarginpar{\git{git init}}
+Foo
+
+\leftmarginpar{\git{git add}}
+Foo
+
+\leftmarginpar{\git{git commit}}
+Foo
+
+\leftmarginpar{\git{git status}}
+Foo
+
+\leftmarginpar{\git{git diff}}
+Foo
+
+\leftmarginpar{\git{git checkout}}
+Foo
+
+\leftmarginpar{\git{git branch}}
+Foo
+
+\leftmarginpar{\git{git merge}}
+Foo
+
+\section{Special files and folders}
+
+\leftmarginpar{\code{.git}}
+This is where the magic happens!
+
+\leftmarginpar{\code{.gitignore}}
+Foo
+
+\section{Helpful tools}
+
+\leftmarginpar{\proglang{gitk}}
+\proglang{gitk} is a graphical repository browser. It can be thought of as a GUI wrapper for \git{git log} and is useful for exploring and visualizing the history of a repository.
+
+
+\leftmarginpar{Resources}
+\begin{itemize}
+\item Foo
+\end{itemize}
 
 \bibliography{refs}
-
-\newpage
-
-\begin{appendix}
-
-\section{More technical details} \label{app:technical}
-
-The appendix...
-
-\end{appendix}
 
 \end{document}
