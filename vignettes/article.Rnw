@@ -305,6 +305,14 @@ gitk
 %
 \marginpar{Almost every IDE (e.g., RStudio or VScode have built-in support to visualize such changes. Of course, use them if you prefer!)}
 
+\leftmarginpar{\fct{usethis::use\_git}}
+If you want to start using \proglang{git} in an \R-project, you can call \fct{usethis::use\_git} in an \R-console (with the project root as the working directory). This is more or less equivalent to
+\begin{bashcode}
+git init .
+git add .
+git commit -m "Initial commit"
+\end{bashcode}
+
 \leftmarginpar{Resources}
 \begin{itemize}
 \item Foo
